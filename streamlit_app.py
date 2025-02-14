@@ -2,9 +2,10 @@ import streamlit as st
 import sqlalchemy as db
 import pandas as pd
 
-st.title("Habits Dashboard")
+st.set_page_config(page_title="Home")
+st.title("Home")
 st.write(
-    "Here are all the habits I have made so far!"
+    "Welcome to the Habit Tracker! Please select a tile to get started."
 )
 
 engine = db.create_engine("sqlite:///habits.db")
