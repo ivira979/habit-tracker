@@ -4,12 +4,23 @@ import pandas as pd
 
 st.set_page_config(page_title="Home")
 
+
+
 st.title("Home")
 st.write(
     "Welcome to the Habit Tracker! Please select a tile to get started."
 )
 
-engine = db.create_engine("sqlite:///habits.db")
+def menu():
+    st.sidebar.page_link("pages/form.py", label="TEST")
+
+
+menu()
+
+
+
+
+'''engine = db.create_engine("sqlite:///habits.db")
 query = 'select * from habits'
 
 conn = engine.connect()
@@ -19,4 +30,4 @@ df = pd.read_sql(
     con=conn.connection
 )
 
-st.write(df)
+st.write(df)'''
