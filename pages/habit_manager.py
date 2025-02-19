@@ -3,10 +3,10 @@ import sqlalchemy as db
 import pandas as pd
 from streamlit_option_menu import option_menu
 
-st.set_page_config(page_title="Home",initial_sidebar_state="collapsed")
 
 
-page_title = "Home"
+
+page_title = "Habit Manager"
 page_list = ["Home",  "Submission Form", "Last Completed", "Analytics", "Statistics", "Habit Manager"]
 curr_index = page_list.index(page_title)
 
@@ -33,24 +33,20 @@ else:
     print()
 
 st.write(
-    "Welcome to the Habit Tracker! Please select a tile to get started."
+    "Use the below form to add new habits to the database:"
 )
+with st.form("Add a Habit", True):
+    st.write("Add a Habit")
+    habit_name = st.text_input("Insert habit name:")
+    habit_repeat = st.checkbox(" repeating? (Y/N)")
+    habit_notes = st.text_area("Enter any habit notes:")
+    submitted = st.form_submit_button("Create")
+    
+    if submitted:
+        st.write("**Habit created successfully!**")
+        st.write("**Habit details:**")
+        st.write("Habit Name -", habit_name)
+        st.write("Repeat (Y/N) -", habit_repeat)
+        st.write("Notes -", habit_notes)
 
 
-
-
-
-
-
-
-#engine = db.create_engine("sqlite:///habits.db")
-#query = 'select * from habits'
-
-#conn = engine.connect()
-
-#df = pd.read_sql(
-#    sql=query,
- #   con=conn.connection
-#)
-
-#st.write(df)

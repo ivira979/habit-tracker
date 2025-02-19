@@ -3,10 +3,10 @@ import sqlalchemy as db
 import pandas as pd
 from streamlit_option_menu import option_menu
 
-st.set_page_config(page_title="Home",initial_sidebar_state="collapsed")
 
 
-page_title = "Home"
+
+page_title = "Statistics"
 page_list = ["Home",  "Submission Form", "Last Completed", "Analytics", "Statistics", "Habit Manager"]
 curr_index = page_list.index(page_title)
 
@@ -31,26 +31,3 @@ elif selected == "Habit Manager":
     st.switch_page("pages/habit_manager.py")
 else:
     print()
-
-st.write(
-    "Welcome to the Habit Tracker! Please select a tile to get started."
-)
-
-
-
-
-
-
-
-
-#engine = db.create_engine("sqlite:///habits.db")
-#query = 'select * from habits'
-
-#conn = engine.connect()
-
-#df = pd.read_sql(
-#    sql=query,
- #   con=conn.connection
-#)
-
-#st.write(df)
