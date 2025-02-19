@@ -64,14 +64,16 @@ try:
         submitted = st.form_submit_button("Create Submission")
         
         if submitted:
+            vals = []
             st.write("**Submission created successfully!**")
             st.write("**Submission details:**")
             st.write("Date - ", sub_date)
             for key in habit_vals:
                 st.write(key[1], " - ", habit_vals[key])
-                q = "INSERT INTO HABIT_SUBMISSION (submission_date, submission_value, sub_habit_id) VALUES ("+ "'" + sub_date.strftime("%Y-%m-%d") +"'" + ", " + "'" + str(habit_vals[key]) + "'" + ", " + "'" + str(key[0]) + "'"+ ");"
-                #run_query(cursor, "DELETE FROM HABIT_SUBMISSION WHERE 1=1")
-                run_query(cursor, q)
+                vals.append("("+ "'" + sub_date.strftime("%Y-%m-%d") +"'" + ", " + "'" + str(habit_vals[key]) + "'" + ", " + "'" + str(key[0]) + "'"+ ")")
+            q = "INSERT INTO HABIT_SUBMISSION (submission_date, submission_value, sub_habit_id) VALUES " + ','.join(vals) + ";"
+            #run_query(cursor, "DELETE FROM HABIT_SUBMISSION WHERE 1=1")
+            run_query(cursor, q)
         else:
             habit_vals = {}
 
