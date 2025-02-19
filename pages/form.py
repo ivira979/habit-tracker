@@ -7,7 +7,7 @@ selected = option_menu(None, ["Home", "Form"],
     icons=['house', "list-task"], 
     menu_icon="cast", default_index=1, orientation="vertical")
 if selected == "Home":
-    st.switch_page("streamlit_app.py")
+    st.switch_page("home.py")
 st.write(
     "Use the below form to add new habits to the database:"
 )
