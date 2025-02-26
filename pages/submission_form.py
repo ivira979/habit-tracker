@@ -65,7 +65,7 @@ try:
         submitted = st.form_submit_button("Create Submission")
         
         if submitted:
-            s = str(rd.randint(99999, 999999999))
+            s = str(rd.randint(9, 999999999))
             vals = []
             st.write("**Submission created successfully!**")
             st.write("**Submission details:**")
