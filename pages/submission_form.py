@@ -2,6 +2,7 @@ import streamlit as st
 import sqlalchemy as db
 import sqlite3
 import pandas as pd
+import random as rd
 from datetime import datetime
 from streamlit_option_menu import option_menu
 
@@ -60,18 +61,19 @@ try:
         sub_date = st.date_input("Insert submission date:")
         for index, row in df.iterrows():
             habit_vals[(row['habit_id'],row['habit_name'])] = int(st.checkbox(row['habit_name']))
-        habit_vals[(8,'drink water')] = int(st.number_input('How many ounces of water did you drink today?:'))
+        habit_vals[(8,'drink water')] = int(st.number_input('How many ounces of water did you drink today?:', step=1))
         submitted = st.form_submit_button("Create Submission")
         
         if submitted:
+            s = str(rd.randint(99999, 999999999))
             vals = []
             st.write("**Submission created successfully!**")
             st.write("**Submission details:**")
             st.write("Date - ", sub_date)
             for key in habit_vals:
                 st.write(key[1], " - ", habit_vals[key])
-                vals.append("("+ "'" + sub_date.strftime("%Y-%m-%d") +"'" + ", " + "'" + str(habit_vals[key]) + "'" + ", " + "'" + str(key[0]) + "'"+ ")")
-            q = "INSERT INTO HABIT_SUBMISSION (submission_date, submission_value, sub_habit_id) VALUES " + ','.join(vals) + ";"
+                vals.append("("+ "'" + sub_date.strftime("%Y-%m-%d") +"'" + ", " + "'" + str(habit_vals[key]) + "'" + ", " + "'" + str(key[0]) + "'"+ ", " + "'" + s + "'"+ ")")
+            q = "INSERT INTO HABIT_SUBMISSION (submission_date, submission_value, sub_habit_id, session_id) VALUES " + ','.join(vals) + ";"
             #run_query(cursor, "DELETE FROM HABIT_SUBMISSION WHERE 1=1")
             run_query(cursor, q)
         else:
