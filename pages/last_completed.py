@@ -1,6 +1,7 @@
 import streamlit as st
 import sqlalchemy as db
 import pandas as pd
+import sqlite3
 from streamlit_option_menu import option_menu
 
 
@@ -31,3 +32,17 @@ elif selected == "Habit Manager":
     st.switch_page("pages/habit_manager.py")
 else:
     print()
+
+try:
+    conn = sqlite3.connect('habits.db')
+    cursor = conn.cursor()
+    habit_query = "select * from v_hab_last_completed;"
+    df = pd.read_sql(habit_query, conn)
+except sqlite3.Error as error:
+    print("Error while connecting to sqlite", error)
+finally:
+    if conn:
+        conn.close()
+        print("The SQLite connection is closed")
+
+st.write(df)
