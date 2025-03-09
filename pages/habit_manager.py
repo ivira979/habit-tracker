@@ -1,6 +1,9 @@
 import streamlit as st
 import sqlalchemy as db
+import sqlite3
 import pandas as pd
+import random as rd
+from datetime import datetime
 from streamlit_option_menu import option_menu
 
 
@@ -32,13 +35,25 @@ elif selected == "Habit Manager":
 else:
     print()
 
+def run_query(c, q):
+    try:
+        c.execute(q)
+    except sqlite3.Error as error:
+        match error.sqlite_errorname:
+            case "SQLITE_CONSTRAINT_NOTNULL":
+                st.write("Error: Please enter a valid habit name.")
+            case "SQLITE_CONSTRAINT_UNIQUE":
+                st.write("Error: This habit already exists - please try a different name.")
+            case _:
+                st.write("Something went wrong! Please try again.")
+
 st.write(
     "Use the below form to add new habits to the database:"
 )
 with st.form("Add a Habit", True):
     st.write("Add a Habit")
     habit_name = st.text_input("Insert habit name:")
-    habit_repeat = st.checkbox(" repeating? (Y/N)")
+    habit_type = st.selectbox("What type of habit is this?",("Daily","Other"))
     habit_notes = st.text_area("Enter any habit notes:")
     submitted = st.form_submit_button("Create")
     
