@@ -52,7 +52,7 @@ try:
     conn = sqlite3.connect('habits.db')
     cursor = conn.cursor()
    
-    habit_query = "select habit_id, habit_name from habits where habit_name not like 'drink water' and active_flag = TRUE;"
+    habit_query = "select habit_id, habit_name from habits where habit_name not like 'water consumed (oz)' and active_flag = TRUE;"
     df = pd.read_sql(habit_query, conn)
     habit_vals = {}
 

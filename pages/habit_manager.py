@@ -47,8 +47,14 @@ def run_query(c, q):
             case _:
                 st.write("Something went wrong! Please try again.")
 
+conn = sqlite3.connect('habits.db')
+cursor = conn.cursor()
+
 st.write(
-    "Use the below form to add new habits to the database:"
+    "Use this form to add new habits to the database:"
+)
+st.write(
+    "__Note: You cannot have two habits with the same name at the same time. Please check the habit list below.__"
 )
 with st.form("Add a Habit", True):
     st.write("Add a Habit")
@@ -61,7 +67,53 @@ with st.form("Add a Habit", True):
         st.write("**Habit created successfully!**")
         st.write("**Habit details:**")
         st.write("Habit Name -", habit_name)
-        st.write("Repeat (Y/N) -", habit_repeat)
+        st.write("Habit Type -", habit_type)
         st.write("Notes -", habit_notes)
 
 
+st.write(
+    "Use this form to activate/deactivate a habit:"
+)
+st.write(
+    "__Note: A deactivated habit will be excluded from the"
+    " submission form but still show up on metrics such as"
+    " last completed. If you wish to completely delete a habit"
+    " from existence, please reach out to the administrator. 'Water Consumed' may not be deactivated at this time.__"
+)
+
+
+
+habit_query = "select habit_id, habit_name from habits where habit_name not like 'water consumed (oz)';"
+df = pd.read_sql(habit_query, conn)
+habit_vals = {}
+
+
+
+with st.form("Activate/Deactivate a Habit", True):
+    st.write("Activate/Deactivate a Habit")
+    for index, row in df.iterrows():
+        habit_vals[row['habit_id']] = row['habit_name']
+
+    
+    habit_selection = st.selectbox("Which habit do you want to manage?",(habit_vals.values()))
+    habit_status = st.selectbox("What status do you want to set it to?",("Active","Inactive"))
+    habit_notes = st.text_area("Optional: Enter any habit notes you want to add:")
+    submitted = st.form_submit_button("Submit")
+    
+    if submitted:
+        active_flag = "True" if habit_status == "Active" else "False"
+        update_habit_query = "UPDATE habits SET active_flag = '" + active_flag + \
+            "', habit_notes = '" + habit_notes + \
+            "' WHERE habit_name like '" + habit_selection + "'"
+        run_query(cursor, update_habit_query)
+        st.write("**Habit updated successfully!**")
+        st.write("**Habit details:**")
+        st.write("Habit Name -", habit_selection)
+        st.write("Habit Status -", habit_status)
+        st.write("Notes -", habit_notes)
+
+
+habits_all = "select * from habits;"
+habits_df = pd.read_sql(habits_all, conn)
+
+st.write(habits_df)
