@@ -15,7 +15,7 @@ curr_index = page_list.index(page_title)
 
 st.title(page_title)
 selected = option_menu(None, page_list, 
-    icons=['house', "list-task"], 
+    icons=['house', "list-task", "calendar-check", "clipboard-data", "graph-up-arrow", "database-fill-gear"], 
     menu_icon="cast", default_index=curr_index, orientation="vertical")
 
 if selected == page_title:

@@ -24,7 +24,7 @@ curr_index = page_list.index(page_title)
 
 st.title(page_title)
 selected = option_menu(None, page_list, 
-    icons=['house', "list-task"], 
+    icons=['house', "list-task", "calendar-check", "clipboard-data", "graph-up-arrow", "database-fill-gear"], 
     menu_icon="cast", default_index=curr_index, orientation="vertical")
 
 if selected == page_title:
@@ -82,8 +82,6 @@ try:
     cursor.close()
     conn.commit()
 
-    df = pd.read_sql("SELECT * FROM habit_submission", conn)
-    st.write(df)
 except sqlite3.Error as error:
     print("Error while connecting to sqlite", error)
 finally:
@@ -93,6 +91,62 @@ finally:
 
 
 
+st.write(
+    "Use the below form to search for submissions on a given date:"
+)
+try:
 
+    conn = sqlite3.connect('habits.db')
+    cursor = conn.cursor()
+
+    with st.form("Search Submission", True):
+        st.write("Search Submissions for Date")
+        clear_date = st.date_input("Select date:")
+        submitted = st.form_submit_button("Search")
+
+        if submitted:
+            q = "select h.habit_name, sum(hs.submission_value) number_of_submissions from habit_submission hs join habits h on hs.sub_habit_id = h.habit_id where submission_date LIKE '" + clear_date.strftime("%Y-%m-%d") + "' group by h.habit_name"
+            pdf = pd.read_sql(q, conn)
+            st.write(pdf)
+
+    cursor.close()
+    conn.commit()
+
+except sqlite3.Error as error:
+    print("Error while connecting to sqlite", error)
+finally:
+    if conn:
+        conn.close()
+        print("The SQLite connection is closed")
+
+st.write(
+    "Use the below form to clear the submissions for a given date:"
+)
+try:
+
+    conn = sqlite3.connect('habits.db')
+    cursor = conn.cursor()
+
+    with st.form("Clear Submission", True):
+        st.write("Clear Submissions for Date")
+        clear_date = st.date_input("Select date:")
+        submitted = st.form_submit_button("Clear")
+
+        if submitted:
+            q = "DELETE FROM habit_submission where submission_date LIKE '" + clear_date.strftime("%Y-%m-%d") + "'"
+            #run_query(cursor, "DELETE FROM HABIT_SUBMISSION WHERE 1=1")
+            run_query(cursor, q)
+            st.write("**Submission cleared successfully!**")
+           
+
+    cursor.close()
+    conn.commit()
+
+except sqlite3.Error as error:
+    print("Error while connecting to sqlite", error)
+finally:
+    if conn:
+        conn.close()
+        print("The SQLite connection is closed")
 
 
