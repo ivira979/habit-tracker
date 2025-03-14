@@ -1,6 +1,8 @@
 import streamlit as st
 import sqlalchemy as db
 import pandas as pd
+import sqlite3
+import calendar
 from streamlit_option_menu import option_menu
 
 
@@ -9,6 +11,8 @@ from streamlit_option_menu import option_menu
 page_title = "Analytics"
 page_list = ["Home",  "Submission Form", "Last Completed", "Analytics", "Statistics", "Habit Manager"]
 curr_index = page_list.index(page_title)
+date_type = ""
+habit_q_type = ""
 
 st.title(page_title)
 selected = option_menu(None, page_list, 
@@ -31,3 +35,232 @@ elif selected == "Habit Manager":
     st.switch_page("pages/habit_manager.py")
 else:
     print()
+
+def run_query(c, q):
+    try:
+        c.execute(q)
+    except sqlite3.Error as error:
+        match error.sqlite_errorname:
+            case "SQLITE_CONSTRAINT_NOTNULL":
+                st.write("Error: Please enter a valid habit name.")
+            case "SQLITE_CONSTRAINT_UNIQUE":
+                st.write("Error: This habit already exists - please try a different name.")
+            case _:
+                st.write("Something went wrong! Please try again.")
+
+try:
+ 
+    conn = sqlite3.connect('habits.db')
+    cursor = conn.cursor()
+
+    with st.form("Report Period", False):
+        st.write("Date Type")
+        date_type = st.selectbox("Select date type",("Week","Month","Year", "Custom Range"))
+        habit_q_type = st.selectbox("Select habit type", ("Daily", "Other"))
+ 
+        submitted = st.form_submit_button("Next")
+
+        if submitted:
+            st.write("You have selected:") 
+            st.write("Search type: ", date_type)
+            st.write("Habit type: ", habit_q_type)
+            print()
+
+    if(habit_q_type) == "Daily":
+        if date_type == "Custom Range":
+            with st.form("Custom Range", False):
+                st.write("Date Range")
+                input_start_date = st.date_input("Enter the start of the date range:")
+                input_end_date = st.date_input("Enter the end of the date range:")
+                division_period = (input_end_date-input_start_date).days
+
+                submitted = st.form_submit_button("Run report")
+                cr_q = "select h.habit_name, (cast(sum(hs.submission_value) as float)/"+str(division_period)+")*100.00 completion_percent from habit_submission hs join habits h on hs.sub_habit_id = h.habit_id where submission_date in (select date_dt from date_dim where date_dt between '"+ str(input_start_date) +"' and '" + str(input_end_date) + "') and h.habit_type = 'D' group by h.habit_name"
+                if submitted:
+                    date_type = ""
+                    st.write("Results:")
+                    st.write(pd.read_sql(cr_q, conn))
+                    print()
+
+        if date_type == "Month":
+            with st.form("Month", False):
+                st.write("Select Month and Year")
+                input_month = st.selectbox("Select month:", ("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"))
+                input_m_year = st.selectbox("Select year:", (2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026))
+                
+                year = int(input_m_year)
+                month_index = 0
+                
+                if input_month == "January":
+                    month_index = 1
+                if input_month == "February":
+                    month_index = 2
+                if input_month == "March":
+                    month_index = 3
+                if input_month == "April":
+                    month_index = 4
+                if input_month == "May":
+                    month_index = 5
+                if input_month == "June":
+                    month_index = 6
+                if input_month == "July":
+                    month_index = 7
+                if input_month == "August":
+                    month_index = 8
+                if input_month == "September":
+                    month_index = 9
+                if input_month == "October":
+                    month_index = 10
+                if input_month == "November":
+                    month_index = 11
+                if input_month == "December":
+                    month_index = 12
+
+                len_month = calendar.monthrange(year, month_index)[1]
+                
+                m_q = "select h.habit_name, (cast(sum(hs.submission_value) as float)/"+str(len_month)+")*100.00 completion_percent from habit_submission hs join habits h on hs.sub_habit_id = h.habit_id where submission_date in (select date_dt from date_dim where month_nm = '"+ input_month +"' and cast(year_num as integer) ="+ str(input_m_year) +") and h.habit_type = 'D' group by h.habit_name"
+
+                submitted = st.form_submit_button("Run report")
+
+                if submitted:
+                    date_type = ""
+                    st.write("For the month of ",input_month,", ", str(input_m_year))
+                    st.write("Results:")
+                    st.write(pd.read_sql(m_q, conn))
+                    print()
+
+        if date_type == "Week":
+            with st.form("Week", False):
+                st.write("Select Week and Year")
+                input_week = st.selectbox("Select week:", options=list(range(1,54)))
+                input_w_year = st.selectbox("Select year:", (2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026))
+
+                w_q = "select h.habit_name, (cast(sum(hs.submission_value) as float) / 7)*100.00 completion_percent from habit_submission hs join habits h on hs.sub_habit_id = h.habit_id where submission_date in (select date_dt from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year)+") and h.habit_type = 'D' group by h.habit_name"
+                
+                submitted = st.form_submit_button("Run report")
+
+                if submitted:
+                    date_type = ""
+                    st.write("from", pd.read_sql("SELECT MAX(week_start_date) week_start from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year),conn)," to ",pd.read_sql("SELECT MAX(week_end_date) week_end from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year),conn))
+                    st.write("results:", pd.read_sql(w_q, conn))
+                    print()
+
+        if date_type == "Year":
+            with st.form("Year", False):
+                st.write("Select Year")
+                input_year = st.selectbox("Select year:", (2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026))
+
+                submitted = st.form_submit_button("Run report")
+                y_q = "select h.habit_name, (cast(sum(hs.submission_value) as float) / 365)*100.00 completion_percent from habit_submission hs join habits h on hs.sub_habit_id = h.habit_id where submission_date in (select date_dt from date_dim where cast(year_num as integer) = "+str(input_year)+") and h.habit_type = 'D' group by h.habit_name"
+
+
+                if submitted:
+                    date_type = ""
+                    st.write("For the year of ", str(input_year))
+                    st.write("results:", pd.read_sql(y_q, conn))
+                    print()
+
+    
+    if(habit_q_type) == "Other":
+        if date_type == "Custom Range":
+            with st.form("Custom Range", False):
+                st.write("Date Range")
+                input_start_date = st.date_input("Enter the start of the date range:")
+                input_end_date = st.date_input("Enter the end of the date range:")
+                division_period = (input_end_date-input_start_date).days
+
+                submitted = st.form_submit_button("Run report")
+                cr_q = "select h.habit_name, sum(hs.submission_value) number_of_completions from habit_submission hs join habits h on hs.sub_habit_id = h.habit_id where submission_date in (select date_dt from date_dim where date_dt between '"+ str(input_start_date) +"' and '" + str(input_end_date) + "') and h.habit_type = 'O' group by h.habit_name"
+                if submitted:
+                    date_type = ""
+                    st.write("Results:")
+                    st.write(pd.read_sql(cr_q, conn))
+                    print()
+
+        if date_type == "Month":
+            with st.form("Month", False):
+                st.write("Select Month and Year")
+                input_month = st.selectbox("Select month:", ("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"))
+                input_m_year = st.selectbox("Select year:", (2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026))
+                
+                year = int(input_m_year)
+                month_index = 0
+                
+                if input_month == "January":
+                    month_index = 1
+                if input_month == "February":
+                    month_index = 2
+                if input_month == "March":
+                    month_index = 3
+                if input_month == "April":
+                    month_index = 4
+                if input_month == "May":
+                    month_index = 5
+                if input_month == "June":
+                    month_index = 6
+                if input_month == "July":
+                    month_index = 7
+                if input_month == "August":
+                    month_index = 8
+                if input_month == "September":
+                    month_index = 9
+                if input_month == "October":
+                    month_index = 10
+                if input_month == "November":
+                    month_index = 11
+                if input_month == "December":
+                    month_index = 12
+
+                len_month = calendar.monthrange(year, month_index)[1]
+                
+                m_q = "select h.habit_name, sum(hs.submission_value) number_of_completions from habit_submission hs join habits h on hs.sub_habit_id = h.habit_id where submission_date in (select date_dt from date_dim where month_nm = '"+ input_month +"' and cast(year_num as integer) ="+ str(input_m_year) +") and h.habit_type = 'O' group by h.habit_name"
+
+                submitted = st.form_submit_button("Run report")
+
+                if submitted:
+                    date_type = ""
+                    st.write("For the month of ",input_month,", ", str(input_m_year))
+                    st.write("Results:")
+                    st.write(pd.read_sql(m_q, conn))
+                    print()
+
+        if date_type == "Week":
+            with st.form("Week", False):
+                st.write("Select Week and Year")
+                input_week = st.selectbox("Select week:", options=list(range(1,54)))
+                input_w_year = st.selectbox("Select year:", (2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026))
+
+                w_q = "select h.habit_name, sum(hs.submission_value) number_of_completions from habit_submission hs join habits h on hs.sub_habit_id = h.habit_id where submission_date in (select date_dt from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year)+") and h.habit_type = 'O' group by h.habit_name"
+                
+                submitted = st.form_submit_button("Run report")
+
+                if submitted:
+                    date_type = ""
+                    st.write("from", pd.read_sql("SELECT MAX(week_start_date) week_start from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year),conn)," to ",pd.read_sql("SELECT MAX(week_end_date) week_end from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year),conn))
+                    st.write("results:", pd.read_sql(w_q, conn))
+                    print()
+
+        if date_type == "Year":
+            with st.form("Year", False):
+                st.write("Select Year")
+                input_year = st.selectbox("Select year:", (2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026))
+
+                submitted = st.form_submit_button("Run report")
+                y_q = "select h.habit_name, sum(hs.submission_value) number_of_completions from habit_submission hs join habits h on hs.sub_habit_id = h.habit_id where submission_date in (select date_dt from date_dim where cast(year_num as integer) = "+str(input_year)+") and h.habit_type = 'O' group by h.habit_name"
+
+
+                if submitted:
+                    date_type = ""
+                    st.write("For the year of ", str(input_year))
+                    st.write("results:", pd.read_sql(y_q, conn))
+                    print()
+
+    cursor.close()
+    conn.commit()
+
+except sqlite3.Error as error:
+    print("Error while connecting to sqlite", error)
+finally:
+    if conn:
+        conn.close()
+        print("The SQLite connection is closed")
