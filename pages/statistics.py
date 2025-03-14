@@ -61,6 +61,7 @@ try:
                 date_type = ""
                 cr_q_r = pd.read_sql(cr_q, conn)
                 r = cr_q_r['All_Daily_Habits'].iloc[0]
+                r = int(0 if r is None else r)
                 st.write("Results: ", round(r, 2), "% of daily tasks have been completed! Wah Wah!")
                 print()
 
@@ -109,6 +110,7 @@ try:
                 st.write("For the month of ",input_month,", ", str(input_m_year))
                 m_q_r = pd.read_sql(m_q, conn)
                 r = m_q_r['All_Daily_Habits'].iloc[0]
+                r = int(0 if r is None else r)
                 st.write("Results: ", round(r, 2), "% of daily tasks have been completed! Wah Wah!")
                 print()
 
@@ -127,6 +129,7 @@ try:
                 st.write("from", pd.read_sql("SELECT MAX(week_start_date) week_start from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year),conn)," to ",pd.read_sql("SELECT MAX(week_end_date) week_end from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year),conn))
                 w_q_r = pd.read_sql(w_q, conn)
                 r = w_q_r['All_Daily_Habits'].iloc[0]
+                r = int(0 if r is None else r)
                 st.write("Results: ", round(r, 2), "% of daily tasks have been completed! Wah Wah!")
                 print()
 
@@ -144,6 +147,7 @@ try:
                 st.write("For the year of ", str(input_year))
                 y_q_r = pd.read_sql(y_q, conn)
                 r = y_q_r['All_Daily_Habits'].iloc[0]
+                r = int(0 if r is None else r)
                 st.write("Results: ", round(r, 2), "% of daily tasks have been completed! Wah Wah!")
                 print()
 
