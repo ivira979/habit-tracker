@@ -36,6 +36,9 @@ st.write(
     "Welcome to the Habit Tracker! Please select a tile to get started."
 )
 
+st.write(
+    "Application is under maintainence - new entries will not be saved. ETA for fix is 05/18"
+)
 
 
 
