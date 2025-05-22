@@ -3,6 +3,7 @@ import sqlalchemy as db
 import sqlite3
 import pandas as pd
 import random as rd
+from sqlalchemy import text
 from datetime import datetime
 from streamlit_option_menu import option_menu
 
@@ -64,7 +65,7 @@ try:
                 vals.append("("+ "'" + sub_date.strftime("%Y-%m-%d") +"'" + ", " + "'" + str(habit_vals[key]) + "'" + ", " + "'" + str(key[0]) + "'"+ ", " + "'" + s + "'"+ ")")
             q = "INSERT INTO HABIT_SUBMISSION (submission_date, submission_value, sub_habit_id, session_id) VALUES " + ','.join(vals) + ";"
             with conn.session as session:
-                session.execute(q)
+                session.execute(text(q))
                 session.commit()
         else:
             habit_vals = {}
@@ -111,7 +112,7 @@ try:
             q = "DELETE FROM habit_submission where submission_date LIKE '" + clear_date.strftime("%Y-%m-%d") + "'"
             #run_query(cursor, "DELETE FROM HABIT_SUBMISSION WHERE 1=1")
             with conn.session as session:
-                session.execute(q)
+                session.execute(text(q))
                 session.commit()
             st.write("**Submission cleared successfully!**")
            
