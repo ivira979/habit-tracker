@@ -245,6 +245,4 @@ try:
 except sqlite3.Error as error:
     print("Error while connecting to sqlite", error)
 finally:
-    if conn:
-        conn.close()
-        print("The SQLite connection is closed")
+    
