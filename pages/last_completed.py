@@ -35,7 +35,7 @@ else:
     print()
 
 conn = st.connection("postgresql", type="sql")
-df = conn.query('select * from v_hab_last_completed;', ttl="10m")
+df = conn.query('select * from v_hab_last_completed;', ttl="5")
 
 
 st.write(df)
