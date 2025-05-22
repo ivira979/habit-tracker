@@ -4,7 +4,6 @@ import pandas as pd
 import sqlite3
 import psycopg2
 import altair as alt
-import plotly.express as px
 from streamlit_option_menu import option_menu
 
 
