@@ -56,6 +56,7 @@ with st.form("Add a Habit", True):
         st.write("**Habit details:**")
         st.write("Habit Name -", habit_name)
         st.write("Habit Type -", habit_type)
+        habit_type = 'D' if habit_type == 'Daily' else 'O'
         insert_habit_query = "INSERT INTO habits (habit_name, habit_type, active_flag) VALUES ('"+habit_name+"','"+habit_type+"',TRUE)"
         with conn.session as session:
                 session.execute(text(insert_habit_query))
@@ -87,13 +88,11 @@ with st.form("Activate/Deactivate a Habit", True):
     
     habit_selection = st.selectbox("Which habit do you want to manage?",(habit_vals.values()))
     habit_status = st.selectbox("What status do you want to set it to?",("Active","Inactive"))
-    habit_notes = st.text_area("Optional: Enter any habit notes you want to add:")
     submitted = st.form_submit_button("Submit")
     
     if submitted:
         active_flag = "True" if habit_status == "Active" else "False"
         update_habit_query = "UPDATE habits SET active_flag = '" + active_flag + \
-            "', habit_notes = '" + habit_notes + \
             "' WHERE habit_name like '" + habit_selection + "'"
         with conn.session as session:
                 session.execute(text(update_habit_query))
@@ -102,7 +101,7 @@ with st.form("Activate/Deactivate a Habit", True):
         st.write("**Habit details:**")
         st.write("Habit Name -", habit_selection)
         st.write("Habit Status -", habit_status)
-        st.write("Notes -", habit_notes)
+       
 
 
 habits_all = "select * from habits;"
