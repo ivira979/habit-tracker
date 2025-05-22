@@ -33,7 +33,7 @@ elif selected == "Habit Manager":
 else:
     print()
 
-try:
+"""try:
     conn = sqlite3.connect('habits.db')
     cursor = conn.cursor()
     habit_query = "select * from v_hab_last_completed;"
@@ -43,6 +43,11 @@ except sqlite3.Error as error:
 finally:
     if conn:
         conn.close()
-        print("The SQLite connection is closed")
+        print("The SQLite connection is closed")"""
+
+
+conn = st.connection("postgresql", type="sql")
+df = conn.query('select * from v_hab_last_completed;', ttl="10m")
+
 
 st.write(df)
