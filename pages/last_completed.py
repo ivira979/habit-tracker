@@ -34,19 +34,6 @@ elif selected == "Habit Manager":
 else:
     print()
 
-"""try:
-    conn = sqlite3.connect('habits.db')
-    cursor = conn.cursor()
-    habit_query = "select * from v_hab_last_completed;"
-    df = pd.read_sql(habit_query, conn)
-except sqlite3.Error as error:
-    print("Error while connecting to sqlite", error)
-finally:
-    if conn:
-        conn.close()
-        print("The SQLite connection is closed")"""
-
-
 conn = st.connection("postgresql", type="sql")
 df = conn.query('select * from v_hab_last_completed;', ttl="10m")
 
