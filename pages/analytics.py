@@ -245,4 +245,4 @@ try:
 except sqlite3.Error as error:
     print("Error while connecting to sqlite", error)
 finally:
-    
+    print("")
