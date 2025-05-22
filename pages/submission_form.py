@@ -6,17 +6,6 @@ import random as rd
 from datetime import datetime
 from streamlit_option_menu import option_menu
 
-def run_query(c, q):
-    try:
-        c.execute(q)
-    except sqlite3.Error as error:
-        match error.sqlite_errorname:
-            case "SQLITE_CONSTRAINT_NOTNULL":
-                st.write("Error: Please enter a valid habit name.")
-            case "SQLITE_CONSTRAINT_UNIQUE":
-                st.write("Error: This habit already exists - please try a different name.")
-            case _:
-                st.write("Something went wrong! Please try again.")
 
 page_title = "Submission Form"
 page_list = ["Home",  "Submission Form", "Last Completed", "Analytics", "Statistics", "Habit Manager"]
@@ -47,13 +36,13 @@ else:
 st.write(
     "Use the below form to submit your tracking:"
 )
-try:
 
-    conn = sqlite3.connect('habits.db')
-    cursor = conn.cursor()
+conn = st.connection("postgresql", type="sql")
+
+try:
    
     habit_query = "select habit_id, habit_name from habits where habit_name not like 'water consumed (oz)' and active_flag = TRUE;"
-    df = pd.read_sql(habit_query, conn)
+    df = conn.query(habit_query)
     habit_vals = {}
 
     with st.form("Submit Your Tracking", True):
@@ -74,20 +63,17 @@ try:
                 st.write(key[1], " - ", habit_vals[key])
                 vals.append("("+ "'" + sub_date.strftime("%Y-%m-%d") +"'" + ", " + "'" + str(habit_vals[key]) + "'" + ", " + "'" + str(key[0]) + "'"+ ", " + "'" + s + "'"+ ")")
             q = "INSERT INTO HABIT_SUBMISSION (submission_date, submission_value, sub_habit_id, session_id) VALUES " + ','.join(vals) + ";"
-            #run_query(cursor, "DELETE FROM HABIT_SUBMISSION WHERE 1=1")
-            run_query(cursor, q)
+            with conn.session as session:
+                session.execute(q)
+                session.commit()
         else:
             habit_vals = {}
 
-    cursor.close()
-    conn.commit()
 
 except sqlite3.Error as error:
     print("Error while connecting to sqlite", error)
 finally:
-    if conn:
-        conn.close()
-        print("The SQLite connection is closed")
+    print("")
 
 
 
@@ -96,9 +82,6 @@ st.write(
 )
 try:
 
-    conn = sqlite3.connect('habits.db')
-    cursor = conn.cursor()
-
     with st.form("Search Submission", True):
         st.write("Search Submissions for Date")
         clear_date = st.date_input("Select date:")
@@ -106,26 +89,18 @@ try:
 
         if submitted:
             q = "select h.habit_name, sum(hs.submission_value) number_of_submissions from habit_submission hs join habits h on hs.sub_habit_id = h.habit_id where submission_date LIKE '" + clear_date.strftime("%Y-%m-%d") + "' group by h.habit_name"
-            pdf = pd.read_sql(q, conn)
+            pdf = conn.query(q)
             st.write(pdf)
-
-    cursor.close()
-    conn.commit()
 
 except sqlite3.Error as error:
     print("Error while connecting to sqlite", error)
 finally:
-    if conn:
-        conn.close()
-        print("The SQLite connection is closed")
+    print("")
 
 st.write(
     "Use the below form to clear the submissions for a given date:"
 )
 try:
-
-    conn = sqlite3.connect('habits.db')
-    cursor = conn.cursor()
 
     with st.form("Clear Submission", True):
         st.write("Clear Submissions for Date")
@@ -135,18 +110,14 @@ try:
         if submitted:
             q = "DELETE FROM habit_submission where submission_date LIKE '" + clear_date.strftime("%Y-%m-%d") + "'"
             #run_query(cursor, "DELETE FROM HABIT_SUBMISSION WHERE 1=1")
-            run_query(cursor, q)
+            with conn.session as session:
+                session.execute(q)
+                session.commit()
             st.write("**Submission cleared successfully!**")
            
-
-    cursor.close()
-    conn.commit()
 
 except sqlite3.Error as error:
     print("Error while connecting to sqlite", error)
 finally:
-    if conn:
-        conn.close()
-        print("The SQLite connection is closed")
-
+    print("")
 
