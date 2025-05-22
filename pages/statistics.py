@@ -59,7 +59,7 @@ try:
             if submitted:
                 date_type = ""
                 cr_q_r = conn.query(cr_q, ttl='1m')
-                r = cr_q_r['All_Daily_Habits'].iloc[0]
+                r = cr_q_r['all_daily_habits'].iloc[0]
                 r = int(0 if r is None else r)
                 st.write("Results: ", round(r, 2), "% of daily tasks have been completed! Wah Wah!")
                 print()
@@ -127,7 +127,7 @@ try:
                 date_type = ""
                 st.write("from", conn.query("SELECT MAX(week_start_date) week_start from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year))," to ",conn.query("SELECT MAX(week_end_date) week_end from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year)))
                 w_q_r = conn.query(w_q, ttl='1m')
-                r = w_q_r['All_Daily_Habits'].iloc[0]
+                r = w_q_r['all_daily_habits'].iloc[0]
                 r = int(0 if r is None else r)
                 st.write("Results: ", round(r, 2), "% of daily tasks have been completed! Wah Wah!")
                 print()
@@ -145,7 +145,7 @@ try:
                 date_type = ""
                 st.write("For the year of ", str(input_year))
                 y_q_r = conn.query(y_q, ttl='1m')
-                r = y_q_r['All_Daily_Habits'].iloc[0]
+                r = y_q_r['all_daily_habits'].iloc[0]
                 r = int(0 if r is None else r)
                 st.write("Results: ", round(r, 2), "% of daily tasks have been completed! Wah Wah!")
                 print()
