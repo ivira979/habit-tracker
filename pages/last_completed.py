@@ -3,6 +3,8 @@ import sqlalchemy as db
 import pandas as pd
 import sqlite3
 import psycopg2
+import altair as alt
+import plotly.express as px
 from streamlit_option_menu import option_menu
 
 
@@ -34,8 +36,25 @@ elif selected == "Habit Manager":
 else:
     print()
 
+
 conn = st.connection("postgresql", type="sql")
 df = conn.query('select * from v_hab_last_completed;', ttl="5")
 
+def make_heatmap(input_df, input_y, input_x, input_color, input_color_theme):
+    heatmap = alt.Chart(input_df).mark_rect().encode(
+            y=alt.Y(f'{input_y}:O', axis=alt.Axis(title="Year", titleFontSize=18, titlePadding=15, titleFontWeight=900, labelAngle=0)),
+            x=alt.X(f'{input_x}:O', axis=alt.Axis(title="", titleFontSize=18, titlePadding=15, titleFontWeight=900)),
+            color=alt.Color(f'max({input_color}):Q',
+                             legend=None,
+                             scale=alt.Scale(scheme=input_color_theme)),
+            stroke=alt.value('black'),
+            strokeWidth=alt.value(0.25),
+        ).properties(width=900
+        ).configure_axis(
+        labelFontSize=12,
+        titleFontSize=12
+        ) 
+    # height=300
+    return heatmap
 
 st.write(df)
