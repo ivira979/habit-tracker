@@ -108,7 +108,7 @@ try:
                 date_type = ""
                 st.write("For the month of ",input_month,", ", str(input_m_year))
                 m_q_r = conn.query(m_q,ttl='1m')
-                r = m_q_r['All_Daily_Habits'].iloc[0]
+                r = m_q_r['all_daily_habits'].iloc[0]
                 r = int(0 if r is None else r)
                 st.write("Results: ", round(r, 2), "% of daily tasks have been completed! Wah Wah!")
                 print()
