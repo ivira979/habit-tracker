@@ -90,7 +90,7 @@ try:
 
         if submitted:
             q = "select h.habit_name, sum(hs.submission_value) number_of_submissions from habit_submission hs join habits h on hs.sub_habit_id = h.habit_id where submission_date = '" + clear_date.strftime("%Y-%m-%d") + "' group by h.habit_name"
-            pdf = conn.query(q)
+            pdf = conn.query(q, ttl="5")
             st.write(pdf)
 
 except sqlite3.Error as error:

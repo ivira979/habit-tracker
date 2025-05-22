@@ -58,7 +58,7 @@ try:
             cr_q = "with a as (select h.habit_name, (cast(sum(hs.submission_value) as float)/"+str(division_period)+")*100.00 number_of_submissions from habit_submission hs join habits h on hs.sub_habit_id = h.habit_id where submission_date in (select date_dt from date_dim where date_dt between '"+ str(input_start_date) +"' and '" + str(input_end_date) + "') and h.habit_type = 'D' group by h.habit_name) select sum(a.number_of_submissions) All_Daily_Habits from a"
             if submitted:
                 date_type = ""
-                cr_q_r = conn.query(cr_q, ttl='1m')
+                cr_q_r = conn.query(cr_q, ttl='5')
                 r = cr_q_r['all_daily_habits'].iloc[0]
                 r = int(0 if r is None else r)
                 st.write("Results: ", round(r, 2), "% of daily tasks have been completed! Wah Wah!")
@@ -107,7 +107,7 @@ try:
             if submitted:
                 date_type = ""
                 st.write("For the month of ",input_month,", ", str(input_m_year))
-                m_q_r = conn.query(m_q,ttl='1m')
+                m_q_r = conn.query(m_q,ttl='5')
                 r = m_q_r['all_daily_habits'].iloc[0]
                 r = int(0 if r is None else r)
                 st.write("Results: ", round(r, 2), "% of daily tasks have been completed! Wah Wah!")
@@ -126,7 +126,7 @@ try:
             if submitted:
                 date_type = ""
                 st.write("from", conn.query("SELECT MAX(week_start_date) week_start from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year))," to ",conn.query("SELECT MAX(week_end_date) week_end from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year)))
-                w_q_r = conn.query(w_q, ttl='1m')
+                w_q_r = conn.query(w_q, ttl='5')
                 r = w_q_r['all_daily_habits'].iloc[0]
                 r = int(0 if r is None else r)
                 st.write("Results: ", round(r, 2), "% of daily tasks have been completed! Wah Wah!")
@@ -144,7 +144,7 @@ try:
             if submitted:
                 date_type = ""
                 st.write("For the year of ", str(input_year))
-                y_q_r = conn.query(y_q, ttl='1m')
+                y_q_r = conn.query(y_q, ttl='5')
                 r = y_q_r['all_daily_habits'].iloc[0]
                 r = int(0 if r is None else r)
                 st.write("Results: ", round(r, 2), "% of daily tasks have been completed! Wah Wah!")
