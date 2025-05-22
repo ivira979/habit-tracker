@@ -89,7 +89,7 @@ try:
         submitted = st.form_submit_button("Search")
 
         if submitted:
-            q = "select h.habit_name, sum(hs.submission_value) number_of_submissions from habit_submission hs join habits h on hs.sub_habit_id = h.habit_id where submission_date LIKE '" + clear_date.strftime("%Y-%m-%d") + "' group by h.habit_name"
+            q = "select h.habit_name, sum(hs.submission_value) number_of_submissions from habit_submission hs join habits h on hs.sub_habit_id = h.habit_id where submission_date = '" + clear_date.strftime("%Y-%m-%d") + "' group by h.habit_name"
             pdf = conn.query(q)
             st.write(pdf)
 
@@ -109,7 +109,7 @@ try:
         submitted = st.form_submit_button("Clear")
 
         if submitted:
-            q = "DELETE FROM habit_submission where submission_date LIKE '" + clear_date.strftime("%Y-%m-%d") + "'"
+            q = "DELETE FROM habit_submission where submission_date = '" + clear_date.strftime("%Y-%m-%d") + "'"
             #run_query(cursor, "DELETE FROM HABIT_SUBMISSION WHERE 1=1")
             with conn.session as session:
                 session.execute(text(q))
