@@ -2,6 +2,7 @@ import streamlit as st
 import sqlalchemy as db
 import pandas as pd
 import sqlite3
+import psycopg2
 from streamlit_option_menu import option_menu
 
 
