@@ -36,22 +36,10 @@ elif selected == "Habit Manager":
 else:
     print()
 
-def run_query(c, q):
-    try:
-        c.execute(q)
-    except sqlite3.Error as error:
-        match error.sqlite_errorname:
-            case "SQLITE_CONSTRAINT_NOTNULL":
-                st.write("Error: Please enter a valid habit name.")
-            case "SQLITE_CONSTRAINT_UNIQUE":
-                st.write("Error: This habit already exists - please try a different name.")
-            case _:
-                st.write("Something went wrong! Please try again.")
 
 try:
  
-    conn = sqlite3.connect('habits.db')
-    cursor = conn.cursor()
+    conn = st.connection("postgresql", type="sql")
 
     with st.form("Report Period", False):
         st.write("Date Type")
@@ -79,7 +67,7 @@ try:
                 if submitted:
                     date_type = ""
                     st.write("Results:")
-                    st.write(pd.read_sql(cr_q, conn))
+                    st.write(conn.query(cr_q))
                     print()
 
         if date_type == "Month":
@@ -126,7 +114,7 @@ try:
                     date_type = ""
                     st.write("For the month of ",input_month,", ", str(input_m_year))
                     st.write("Results:")
-                    st.write(pd.read_sql(m_q, conn))
+                    st.write(conn.query(m_q))
                     print()
 
         if date_type == "Week":
@@ -141,8 +129,8 @@ try:
 
                 if submitted:
                     date_type = ""
-                    st.write("from", pd.read_sql("SELECT MAX(week_start_date) week_start from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year),conn)," to ",pd.read_sql("SELECT MAX(week_end_date) week_end from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year),conn))
-                    st.write("results:", pd.read_sql(w_q, conn))
+                    st.write("from", conn.query("SELECT MAX(week_start_date) week_start from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year),conn)," to ",pd.read_sql("SELECT MAX(week_end_date) week_end from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year)))
+                    st.write("results:", conn.query(w_q))
                     print()
 
         if date_type == "Year":
@@ -157,7 +145,7 @@ try:
                 if submitted:
                     date_type = ""
                     st.write("For the year of ", str(input_year))
-                    st.write("results:", pd.read_sql(y_q, conn))
+                    st.write("results:", conn.query(y_q))
                     print()
 
     
@@ -174,7 +162,7 @@ try:
                 if submitted:
                     date_type = ""
                     st.write("Results:")
-                    st.write(pd.read_sql(cr_q, conn))
+                    st.write(conn.query(cr_q))
                     print()
 
         if date_type == "Month":
@@ -221,7 +209,7 @@ try:
                     date_type = ""
                     st.write("For the month of ",input_month,", ", str(input_m_year))
                     st.write("Results:")
-                    st.write(pd.read_sql(m_q, conn))
+                    st.write(conn.query(m_q))
                     print()
 
         if date_type == "Week":
@@ -236,8 +224,8 @@ try:
 
                 if submitted:
                     date_type = ""
-                    st.write("from", pd.read_sql("SELECT MAX(week_start_date) week_start from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year),conn)," to ",pd.read_sql("SELECT MAX(week_end_date) week_end from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year),conn))
-                    st.write("results:", pd.read_sql(w_q, conn))
+                    st.write("from", conn.query("SELECT MAX(week_start_date) week_start from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year),conn)," to ",pd.read_sql("SELECT MAX(week_end_date) week_end from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year)))
+                    st.write("results:", conn.query(w_q))
                     print()
 
         if date_type == "Year":
@@ -252,12 +240,8 @@ try:
                 if submitted:
                     date_type = ""
                     st.write("For the year of ", str(input_year))
-                    st.write("results:", pd.read_sql(y_q, conn))
+                    st.write("results:", conn.query(y_q))
                     print()
-
-    cursor.close()
-    conn.commit()
-
 except sqlite3.Error as error:
     print("Error while connecting to sqlite", error)
 finally:
