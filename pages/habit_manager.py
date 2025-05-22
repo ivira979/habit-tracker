@@ -1,6 +1,6 @@
 import streamlit as st
 import sqlalchemy as db
-import sqlite3
+from sqlalchemy import text
 import pandas as pd
 import random as rd
 from datetime import datetime
@@ -35,20 +35,9 @@ elif selected == "Habit Manager":
 else:
     print()
 
-def run_query(c, q):
-    try:
-        c.execute(q)
-    except sqlite3.Error as error:
-        match error.sqlite_errorname:
-            case "SQLITE_CONSTRAINT_NOTNULL":
-                st.write("Error: Please enter a valid habit name.")
-            case "SQLITE_CONSTRAINT_UNIQUE":
-                st.write("Error: This habit already exists - please try a different name.")
-            case _:
-                st.write("Something went wrong! Please try again.")
 
-conn = sqlite3.connect('habits.db')
-cursor = conn.cursor()
+conn = st.connection("postgresql", type="sql")
+
 
 st.write(
     "Use this form to add new habits to the database:"
@@ -60,7 +49,6 @@ with st.form("Add a Habit", True):
     st.write("Add a Habit")
     habit_name = st.text_input("Insert habit name:")
     habit_type = st.selectbox("What type of habit is this?",("Daily","Other"))
-    habit_notes = st.text_area("Enter any habit notes:")
     submitted = st.form_submit_button("Create")
     
     if submitted:
@@ -68,8 +56,10 @@ with st.form("Add a Habit", True):
         st.write("**Habit details:**")
         st.write("Habit Name -", habit_name)
         st.write("Habit Type -", habit_type)
-        st.write("Notes -", habit_notes)
-
+        insert_habit_query = "INSERT INTO habits (habit_name, habit_type, active_flag) VALUES ('"+habit_name+"','"+habit_type+"',TRUE)"
+        with conn.session as session:
+                session.execute(text(insert_habit_query))
+                session.commit()
 
 st.write(
     "Use this form to activate/deactivate a habit:"
@@ -84,7 +74,7 @@ st.write(
 
 
 habit_query = "select habit_id, habit_name from habits where habit_name not like 'water consumed (oz)';"
-df = pd.read_sql(habit_query, conn)
+df = conn.query(habit_query, ttl='5')
 habit_vals = {}
 
 
@@ -105,7 +95,9 @@ with st.form("Activate/Deactivate a Habit", True):
         update_habit_query = "UPDATE habits SET active_flag = '" + active_flag + \
             "', habit_notes = '" + habit_notes + \
             "' WHERE habit_name like '" + habit_selection + "'"
-        run_query(cursor, update_habit_query)
+        with conn.session as session:
+                session.execute(text(update_habit_query))
+                session.commit()
         st.write("**Habit updated successfully!**")
         st.write("**Habit details:**")
         st.write("Habit Name -", habit_selection)
@@ -114,6 +106,6 @@ with st.form("Activate/Deactivate a Habit", True):
 
 
 habits_all = "select * from habits;"
-habits_df = pd.read_sql(habits_all, conn)
+habits_df = conn.query(habits_all, ttl='5')
 
 st.write(habits_df)
