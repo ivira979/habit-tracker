@@ -52,6 +52,7 @@ try:
         for index, row in df.iterrows():
             habit_vals[(row['habit_id'],row['habit_name'])] = int(st.checkbox(row['habit_name']))
         habit_vals[(8,'drink water')] = int(st.number_input('How many ounces of water did you drink today?:', step=1))
+        st.caption("💧 Reference: 1 cup = 8 oz | 1 mug = 16 oz | 1 liter ≈ 34 oz | 355ml can = 12 oz | 500ml bottle ≈ 17 oz")
         submitted = st.form_submit_button("Create Submission")
         
         if submitted:
@@ -85,12 +86,14 @@ try:
 
     with st.form("Search Submission", True):
         st.write("Search Submissions for Date")
-        clear_date = st.date_input("Select date:")
+        search_date = st.date_input("Select date:")
         submitted = st.form_submit_button("Search")
 
         if submitted:
-            q = "select h.habit_name, sum(hs.submission_value) number_of_submissions from habit_submission hs join habits h on hs.sub_habit_id = h.habit_id where submission_date = '" + clear_date.strftime("%Y-%m-%d") + "' group by h.habit_name"
-            pdf = conn.query(q, ttl="5")
+            st.info(f"Searching for submissions on: **{search_date.strftime('%Y-%m-%d')}**")
+            q = "select h.habit_name, sum(hs.submission_value) number_of_submissions from habit_submission hs join habits h on hs.sub_habit_id = h.habit_id where submission_date = '" + search_date.strftime("%Y-%m-%d") + "' group by h.habit_name"
+            pdf = conn.query(q, ttl=5)
+            pdf.rename(columns={'habit_name': 'Habit Name', 'number_of_submissions': 'Number of Submissions'}, inplace=True)
             st.write(pdf)
 
 except sqlite3.Error as error:
@@ -109,8 +112,8 @@ try:
         submitted = st.form_submit_button("Clear")
 
         if submitted:
+            st.warning(f"Clearing submissions for date: **{clear_date.strftime('%Y-%m-%d')}**")
             q = "DELETE FROM habit_submission where submission_date = '" + clear_date.strftime("%Y-%m-%d") + "'"
-            #run_query(cursor, "DELETE FROM HABIT_SUBMISSION WHERE 1=1")
             with conn.session as session:
                 session.execute(text(q))
                 session.commit()

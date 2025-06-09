@@ -37,5 +37,6 @@ else:
 
 
 conn = st.connection("postgresql", type="sql")
-df = conn.query('select * from v_hab_last_completed;', ttl="5")
-st.write(df)
+df = conn.query('select habit_name, last_completed_relative_to_now from v_hab_last_completed;', ttl=5)
+df.rename(columns={'habit_name': 'Habit Name', 'last_completed_relative_to_now': 'Last Completed'}, inplace=True)
+st.dataframe(df, height=425)
