@@ -5,17 +5,19 @@ from datetime import datetime, timedelta
 from streamlit_option_menu import option_menu
 import altair as alt
 
-page_title = "Statistics"
+page_title = "Analytics"
 page_list = ["Home",  "Submission Form", "Last Completed", "Analytics", "Statistics", "Habit Manager"]
 curr_index = page_list.index(page_title)
 
 st.title(page_title)
-selected = option_menu(None, page_list, 
-    icons=['house', "list-task", "calendar-check", "bar-chart", "graph-up-arrow", "database-fill-gear"], 
-    menu_icon="cast", default_index=curr_index, orientation="vertical")
+selected = option_menu(
+    None, page_list,
+    icons=['house', "list-task", "calendar-check", "bar-chart", "graph-up-arrow", "database-fill-gear"],
+    menu_icon="cast", default_index=curr_index, orientation="vertical"
+)
 
 # Add page description
-st.caption("📈 Statistics: View summary statistics for your daily habit completions.")
+st.caption("📊 Analytics: Visualize and analyze your habit completion trends.")
 
 if selected == page_title:
     pass
@@ -34,13 +36,14 @@ elif selected == "Habit Manager":
 else:
     pass
 
-st.header("Daily Habit Completion Statistics")
+st.header("Habit Analytics Report")
 
 conn = st.connection("postgresql", type="sql")
 
-with st.form("statistics_form"):
+with st.form("analytics_form"):
     st.subheader("Report Parameters")
     granularity = st.selectbox("Select granularity", ["Weekly", "Monthly", "Yearly"])
+    habit_type = st.selectbox("Select habit type", ["Daily", "Other"])
     col1, col2 = st.columns(2)
     with col1:
         start_date = st.date_input("Start date", value=datetime.today() - timedelta(days=30))
@@ -61,9 +64,11 @@ with st.form("statistics_form"):
     submitted = st.form_submit_button("Generate Report")
 
 if submitted:
+    # Validate date range
     if start_date > end_date:
         st.error("Start date must be before end date.")
     else:
+        # Determine date range based on checkboxes
         today = datetime.today().date()
         adj_start = start_date
         adj_end = end_date
@@ -83,6 +88,7 @@ if submitted:
                 adj_start = datetime(years[0], 1, 1).date()
                 adj_end = datetime(years[-1], 12, 31).date()
             elif granularity == "Monthly":
+                # Find all months between start and end
                 months = []
                 y, m = start_date.year, start_date.month
                 while (y < end_date.year) or (y == end_date.year and m <= end_date.month):
@@ -97,10 +103,12 @@ if submitted:
                 last_day = calendar.monthrange(last_y, last_m)[1]
                 adj_end = datetime(last_y, last_m, last_day).date()
             elif granularity == "Weekly":
+                # ISO week: Monday is the first day of the week
+                # Find all weeks between start and end
+                # Set adj_start to the Monday of the first week, adj_end to Sunday of the last week
                 adj_start = (start_date - timedelta(days=start_date.weekday()))
                 adj_end = (end_date + timedelta(days=(6 - end_date.weekday())))
-        # Only daily habits
-        habit_type_code = 'D'
+        habit_type_code = 'D' if habit_type == "Daily" else 'O'
         date_filter = f"submission_date BETWEEN '{adj_start}' AND '{adj_end}'"
         group_by = ""
         select_fields = "h.habit_name"
@@ -128,103 +136,73 @@ if submitted:
 
         df = conn.query(query)
         st.info(
-            f"Report for: **Daily** habits | Granularity: **{granularity}** | "
+            f"Report for: **{habit_type}** habits | Granularity: **{granularity}** | "
             f"Date range: **{adj_start}** to **{adj_end}**"
         )
         if df.empty:
             st.warning("No data found for the selected parameters.")
         else:
-            days_in_period = (adj_end - adj_start).days + 1
-            # Calculate total possible completions
-            # Get all active daily habits in the period
-            habits_df = conn.query("SELECT habit_id, habit_name FROM habits WHERE habit_type = 'D' AND active_flag = TRUE")
-            num_habits = len(habits_df)
-            total_possible = num_habits * days_in_period if num_habits > 0 else 1
-            total_completed = df["completions"].sum()
-            overall_pct = (total_completed / total_possible * 100) if total_possible > 0 else 0
-            st.success("Report generated successfully! You have completed " 
-                       f"{overall_pct:.2f}% of daily habits in the selected period. Wah Wah!")
-            st.metric(
-                label="Aggregate Completion Percentage",
-                value=f"{overall_pct:.2f}%",
-                help="This is the percentage of all daily habit completions out of all possible completions for the selected period."
-            )
-            summary = (
-                df.groupby("habit_name")["completions"]
-                .sum()
-                .reset_index()
-                .assign(**{
-                    "Percent Completions": lambda x: (x["completions"] / days_in_period * 100).map(lambda v: f"{v:.2f}%")
-                })
-                .drop(columns=["completions"])
-            )
-            
-            st.dataframe(summary.rename(columns={"habit_name": "Habit Name"}), use_container_width=True)
-            # Visualization: Line chart for percent completions over time per habit
-            st.subheader("Percent Completions Over Time by Habit")
-            # Query for completions by habit and date for the selected period
-            chart_query = f"""
-                SELECT h.habit_name AS "Habit Name", hs.submission_date AS "Date", SUM(hs.submission_value) AS "Completions"
-                FROM habit_submission hs
-                JOIN habits h ON hs.sub_habit_id = h.habit_id
-                WHERE {date_filter} AND h.habit_type = 'D'
-                GROUP BY h.habit_name, hs.submission_date
-                ORDER BY h.habit_name, hs.submission_date
-            """
-            chart_df = conn.query(chart_query)
-            if not chart_df.empty:
-                # Calculate percent completions per habit per day
-                # Use the number of active daily habits for normalization
-                chart_df["Percent Completion"] = chart_df["Completions"] / num_habits * 100 if num_habits > 0 else 0
-
-                # Aggregate by date for overall percent completion
-                agg_df = chart_df.groupby("Date", as_index=False).agg(
-                    {"Percent Completion": "mean"}
+            if habit_type_code == 'D':
+                days_in_period = (adj_end - adj_start).days + 1
+                summary = (
+                    df.groupby("habit_name")["completions"]
+                    .sum()
+                    .reset_index()
+                    .assign(**{
+                        "Percent Completions": lambda x: (x["completions"] / days_in_period * 100).map(lambda v: f"{v:.2f}%")
+                    })
+                    .drop(columns=["completions"])
                 )
-                agg_df["Type"] = "Average"
-                # Find min/max for highlighting
-                min_idx = agg_df["Percent Completion"].idxmin()
-                max_idx = agg_df["Percent Completion"].idxmax()
-
-                # Plot per-habit lines and overall average
-                base = alt.Chart(chart_df).mark_line(point=True).encode(
-                    x=alt.X("Date:T", title="Date"),
-                    y=alt.Y("Percent Completion:Q", title="Percent Completion (%)"),
-                    color=alt.Color("Habit Name:N", scale=alt.Scale(scheme="category20b")),
+                st.success("Report generated successfully!")
+                st.dataframe(summary.rename(columns={"habit_name": "Habit Name"}), use_container_width=True)
+                # Visualization: Mobile-optimized Altair bar chart for percent completions
+                st.subheader("Percent Completions by Habit")
+                chart_data = summary.rename(columns={"habit_name": "Habit Name"})
+                chart_data["Percent Completions (numeric)"] = chart_data["Percent Completions"].str.rstrip('%').astype(float)
+                bar_chart = alt.Chart(chart_data).mark_bar(size=32).encode(
+                    y=alt.Y("Habit Name:N", sort='-x', title=None, axis=alt.Axis(labelLimit=250, labelFontSize=16)),
+                    x=alt.X("Percent Completions (numeric):Q", title="Percent Completions (%)", axis=alt.Axis(format=".2f", labelFontSize=16)),
+                    color=alt.Color("Habit Name:N", scale=alt.Scale(scheme="category20b"), legend=None),
                     tooltip=[
                         alt.Tooltip("Habit Name:N"),
-                        alt.Tooltip("Date:T"),
-                        alt.Tooltip("Percent Completion:Q", format=".2f")
+                        alt.Tooltip("Percent Completions (numeric):Q", format=".2f")
                     ]
-                )
-
-                avg_line = alt.Chart(agg_df).mark_line(point=True, color="black", strokeDash=[5,5]).encode(
-                    x="Date:T",
-                    y="Percent Completion:Q",
-                    tooltip=[
-                        alt.Tooltip("Date:T"),
-                        alt.Tooltip("Percent Completion:Q", format=".2f")
-                    ]
-                )
-
-                # Highlight min/max points on the average line
-                highlight_points = alt.Chart(agg_df.loc[[min_idx, max_idx]]).mark_point(
-                    color="red", size=120, filled=True, shape="diamond"
-                ).encode(
-                    x="Date:T",
-                    y="Percent Completion:Q",
-                    tooltip=[
-                        alt.Tooltip("Date:T"),
-                        alt.Tooltip("Percent Completion:Q", format=".2f")
-                    ]
-                )
-
-                chart = (base + avg_line + highlight_points).properties(
+                ).properties(
                     width="container",
-                    height=350
-                ).interactive()
-
-                st.altair_chart(chart, use_container_width=True)
-                st.caption("Dashed black line shows the average percent completion across all daily habits. Red diamonds highlight min/max average days.")
+                    height=80 * max(1, len(chart_data))
+                ).configure_axis(
+                    labelFontSize=16,
+                    titleFontSize=16
+                ).configure_view(
+                    strokeWidth=0
+                )
+                st.altair_chart(bar_chart, use_container_width=True)
             else:
-                st.caption("No date breakdown available for this granularity.")
+                summary = (
+                    df.groupby("habit_name")["completions"]
+                    .sum()
+                    .reset_index()
+                    .rename(columns={"habit_name": "Habit Name", "completions": "Total Completions"})
+                )
+                st.success("Report generated successfully!")
+                st.dataframe(summary, use_container_width=True)
+                # Visualization: Mobile-optimized Altair bar chart for total completions
+                st.subheader("Total Completions by Habit")
+                bar_chart = alt.Chart(summary).mark_bar(size=32).encode(
+                    y=alt.Y("Habit Name:N", sort='-x', title=None, axis=alt.Axis(labelLimit=250, labelFontSize=16)),
+                    x=alt.X("Total Completions:Q", title="Total Completions", axis=alt.Axis(labelFontSize=16)),
+                    color=alt.Color("Habit Name:N", scale=alt.Scale(scheme="category20b"), legend=None),
+                    tooltip=[
+                        alt.Tooltip("Habit Name:N"),
+                        alt.Tooltip("Total Completions:Q")
+                    ]
+                ).properties(
+                    width="container",
+                    height=80 * max(1, len(summary))
+                ).configure_axis(
+                    labelFontSize=16,
+                    titleFontSize=16
+                ).configure_view(
+                    strokeWidth=0
+                )
+                st.altair_chart(bar_chart, use_container_width=True)

@@ -15,8 +15,11 @@ curr_index = page_list.index(page_title)
 
 st.title(page_title)
 selected = option_menu(None, page_list, 
-    icons=['house', "list-task", "calendar-check", "clipboard-data", "graph-up-arrow", "database-fill-gear"], 
+    icons=['house', "list-task", "calendar-check", "bar-chart", "graph-up-arrow", "database-fill-gear"], 
     menu_icon="cast", default_index=curr_index, orientation="vertical")
+
+# Add page description
+st.caption("⚙️ Habit Manager: Add, activate, or deactivate habits.")
 
 if selected == page_title:
     print()
@@ -27,7 +30,7 @@ elif selected == "Submission Form":
 elif selected == "Last Completed":
     st.switch_page("pages/last_completed.py")
 elif selected == "Analytics":
-    st.switch_page("pages/analytics.py")
+    st.switch_page("pages/analytics_test.py")
 elif selected == "Statistics":
     st.switch_page("pages/statistics.py")
 elif selected == "Habit Manager":
@@ -38,10 +41,6 @@ else:
 
 conn = st.connection("postgresql", type="sql")
 
-
-st.write(
-    "Use this form to add new habits to the database:"
-)
 st.write(
     "__Note: You cannot have two habits with the same name at the same time. Please check the habit list below.__"
 )

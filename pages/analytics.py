@@ -8,16 +8,20 @@ from streamlit_option_menu import option_menu
 
 
 
-page_title = "Analytics"
-page_list = ["Home",  "Submission Form", "Last Completed", "Analytics", "Statistics", "Habit Manager"]
-curr_index = page_list.index(page_title)
+page_title = "Analytics Old"
+page_list = ["Home",  "Submission Form", "Last Completed", "Analytics", "Statistics", "Habit Manager"]  # Remove Analytics Test and itself
+
+curr_index = page_list.index(page_title) if page_title in page_list else 0
 date_type = ""
 habit_q_type = ""
 
 st.title(page_title)
 selected = option_menu(None, page_list, 
-    icons=['house', "list-task", "calendar-check", "clipboard-data", "graph-up-arrow", "database-fill-gear"], 
+    icons=['house', "list-task", "calendar-check", "clipboard-data", "bar-chart", "database-fill-gear"], 
     menu_icon="cast", default_index=curr_index, orientation="vertical")
+
+# Add page description
+st.caption("📋 Analytics Old: Legacy analytics and reports for your habits.")
 
 if selected == page_title:
     print()
