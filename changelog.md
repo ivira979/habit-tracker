@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2025-06-09
+
+### Added 
+
+- Improved column naming for dataframes to be more human readable
+- Added reference measurements for drinking water (1 cup = 8 oz | 1 mug = 16 oz | 1 liter ≈ 34 oz | 355ml can = 12 oz | 500ml bottle ≈ 17 oz) to submission form
+- Updated Search and Clear functions to show query date clearly when executing
+
+### Fixed
+
+- Removed extra column in Last Completed
+- Updated rendering height to show all rows for Last Completed by default
+
 ## [1.0.1] - 2025-05-21
 
 ### Added 
