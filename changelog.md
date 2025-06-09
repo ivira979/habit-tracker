@@ -9,11 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added a short description under the menu on each page to explain the purpose of the page.
+- Overhauled the Analytics and Statistics pages with new, interactive visualizations for habit completion trends and summaries.
+- Streamlined the submission form for a smoother and more intuitive tracking experience.
+- Added a short description under the menu on each page to clearly explain the purpose of every page.
+- Enhanced the development environment to speed up the time required for subsequent releases.
 
 ### Fixed
 
-- None
+- Improved the Last Completed page by sorting habits from oldest to newest completion, making it easier to see which habits need attention.
+- Applied a hotfix to prevent the app from sleeping randomly, ensuring more reliable uptime.
 
 ### Removed
 
