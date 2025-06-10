@@ -133,7 +133,26 @@ try:
 
                 if submitted:
                     date_type = ""
-                    st.write("from", conn.query("SELECT MAX(week_start_date) week_start from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year),conn)," to ",pd.read_sql("SELECT MAX(week_end_date) week_end from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year)))
+                    # Get a compatible SQLAlchemy engine from the Streamlit connection
+                    engine = conn.engine if hasattr(conn, "engine") else conn
+
+                    st.write(
+                        "from",
+                        conn.query(
+                            "SELECT MAX(week_start_date) week_start from date_dim where cast(week_num as integer) ="
+                            + str(input_week)
+                            + " and cast(year_num as integer) = "
+                            + str(input_w_year)
+                        ),
+                        " to ",
+                        pd.read_sql(
+                            "SELECT MAX(week_end_date) week_end from date_dim where cast(week_num as integer) ="
+                            + str(input_week)
+                            + " and cast(year_num as integer) = "
+                            + str(input_w_year),
+                            engine, # type: ignore
+                        ),
+                    )
                     st.write("results:", conn.query(w_q))
                     print()
 
@@ -228,7 +247,7 @@ try:
 
                 if submitted:
                     date_type = ""
-                    st.write("from", conn.query("SELECT MAX(week_start_date) week_start from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year),conn)," to ",pd.read_sql("SELECT MAX(week_end_date) week_end from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year)))
+                    st.write("from", conn.query("SELECT MAX(week_start_date) week_start from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year),conn)," to ",pd.read_sql("SELECT MAX(week_end_date) week_end from date_dim where cast(week_num as integer) ="+str(input_week)+" and cast(year_num as integer) = "+str(input_w_year))) # type: ignore
                     st.write("results:", conn.query(w_q))
                     print()
 

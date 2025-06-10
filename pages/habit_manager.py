@@ -74,7 +74,7 @@ st.write(
 
 
 habit_query = "select habit_id, habit_name from habits where habit_name not like 'water consumed (oz)';"
-df = conn.query(habit_query, ttl='5')
+df = conn.query(habit_query, ttl=5)
 habit_vals = {}
 
 
@@ -104,6 +104,6 @@ with st.form("Activate/Deactivate a Habit", True):
 
 
 habits_all = "select * from habits;"
-habits_df = conn.query(habits_all, ttl='5')
+habits_df = conn.query(habits_all, ttl=5)
 
 st.write(habits_df)
