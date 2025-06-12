@@ -52,7 +52,7 @@ try:
         for index, row in df.iterrows():
             habit_vals[(row['habit_id'],row['habit_name'])] = int(st.checkbox(row['habit_name']))
         habit_vals[(8,'drink water')] = int(st.number_input('How many ounces of water did you drink today?:', step=1))
-        st.caption("💧 Reference: 1 cup = 8 oz | 1 mug = 16 oz | 1 liter ≈ 34 oz | 355ml can = 12 oz | 500ml bottle ≈ 17 oz")
+        st.caption("💧 Reference: 1 mug = 16 oz | 1 liter ≈ 34 oz | 355ml can = 12 oz | 500ml bottle ≈ 17 oz")
         submitted = st.form_submit_button("📝 Create Submission")
         
         if submitted:
