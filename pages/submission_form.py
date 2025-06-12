@@ -51,8 +51,52 @@ try:
         sub_date = st.date_input("Choose the submission date:")
         for index, row in df.iterrows():
             habit_vals[(row['habit_id'],row['habit_name'])] = int(st.checkbox(row['habit_name']))
-        habit_vals[(8,'drink water')] = int(st.number_input('How many ounces of water did you drink today?:', step=1))
-        st.caption("💧 Reference: 1 mug = 16 oz | 1 liter ≈ 34 oz | 355ml can = 12 oz | 500ml bottle ≈ 17 oz")
+
+        # --- Water input with multi-reference selection ---
+        st.markdown("**💧 Reference:**")
+        water_options = {
+            "1 mug (16 oz)": 16,
+            "1 liter (34 oz)": 34,
+            "355ml can (12 oz)": 12,
+            "500ml bottle (17 oz)": 17,
+            "1 cup (8 oz)": 8,
+        }
+
+        selected_refs = st.multiselect(
+            "Quick add: Select reference amounts (you can select multiple):",
+            options=list(water_options.keys()),
+            key="water_multiselect"
+        )
+
+        # Count occurrences of each reference (for multiples)
+        from collections import Counter
+        ref_counts = Counter(selected_refs)
+        total_from_refs = sum(water_options[ref] * count for ref, count in ref_counts.items())
+
+        # Use session state to persist water input
+        if "water_oz" not in st.session_state:
+            st.session_state["water_oz"] = 0
+
+        # If any references are selected, prefill with their sum
+        if selected_refs:
+            st.session_state["water_oz"] = total_from_refs
+
+        water_oz = st.number_input(
+            'How many ounces of water did you drink today?:',
+            step=1,
+            min_value=0,
+            value=st.session_state["water_oz"],
+            key="water_oz_input"
+        )
+        st.session_state["water_oz"] = water_oz
+
+        st.caption(
+            f"Total from selected references: {total_from_refs} oz. "
+            "You can select the same reference multiple times for multiples, or enter a custom value."
+        )
+
+        habit_vals[(8, 'drink water')] = water_oz
+
         submitted = st.form_submit_button("📝 Create Submission")
         
         if submitted:
