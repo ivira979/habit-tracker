@@ -89,7 +89,7 @@ try:
         search_date = st.date_input("Choose a date to search:", value=None, key="search_date_no_default")
         submitted = st.form_submit_button("🔍 Search")
         if not search_date:
-            st.info("👉 Please select a date above and then click **Search** to view your submissions.")
+            pass
         elif submitted and search_date:
             st.success(f"Showing submissions for: **{search_date.strftime('%A, %B %d, %Y')}**")
             q = "select h.habit_name, sum(hs.submission_value) number_of_submissions from habit_submission hs join habits h on hs.sub_habit_id = h.habit_id where submission_date = '" + search_date.strftime("%Y-%m-%d") + "' group by h.habit_name"
@@ -112,7 +112,7 @@ try:
         clear_date = st.date_input("Choose a date to clear:", value=None, key="clear_date_no_default")
         submitted = st.form_submit_button("🧹 Clear")
         if not clear_date:
-            st.info("👉 Please select a date above and then click **Clear** to remove submissions.")
+            pass
         else:
             st.warning(f"⚠️ You are about to clear all submissions for: **{clear_date.strftime('%A, %B %d, %Y')}**")
         if submitted and clear_date:
